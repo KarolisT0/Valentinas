@@ -24,7 +24,7 @@ locations = [
     {
         "name": "Our first trip together", 
         "coords": [56.94751, 24.10867], 
-        "memory": "We planned a lot of things together, but Mintu had his own plans. 🐶",
+        "memory": "We planned a lot of things together, but Mintu had his own plans. 🥂",
         "clue": "Cross the border! Where did we head for our first big getaway? 🏰",
         "image_url": "https://i.imgur.com/aPpyF24.jpg"
     },
