@@ -1,106 +1,131 @@
 import streamlit as st
 from streamlit_folium import st_folium
 import folium
+import random
 
-st.set_page_config(page_title="Our Journey", page_icon="📍", layout="wide")
+st.set_page_config(page_title="The Memory Challenge", page_icon="📍", layout="wide")
 
-# 1. Your locations with images added
+# 1. Locations with Direct Image Links (fixed for Imgur)
 locations = [
     {
         "name": "Where we first met", 
-        "coords": [54.88879624710162, 23.9260471886652], 
+        "coords": [54.88879, 23.92604], 
         "memory": "I'll never forget that white blouse you wore. 👚",
-        "clue": "Let's start where it all began... find the spot of our very first meeting! ☕",
-        "image_url": "https://lh3.googleusercontent.com/p/AF1QipOhRntAB9mbmlZfHxsKAj9PE5ZDlmlIX2a0Pl2K=w426-h240-k-no" # REPLACE WITH REAL URL
+        "clue": "Let's start where it all began... Find the spot of our very first meeting! ☕",
+        "image_url": "https://lh3.googleusercontent.com/p/AF1QipOhRntAB9mbmlZfHxsKAj9PE5ZDlmlIX2a0Pl2K=s680-w680-h510-rw" 
     },
     {
         "name": "Our First Date", 
-        "coords": [56.24867599469959, 24.69066371008891], 
+        "coords": [56.24867, 24.69066], 
         "memory": "The trip was unplanned, but the conversation was perfect. 🍕",
         "clue": "Our first official date! It was a bit of a drive, wasn't it? 🚗",
-        "image_url": "https://maps.app.goo.gl/wcjGmqcaLh2Co4q48"
+        "image_url": "https://i.imgur.com/g7VaplC.jpg"
     },
     {
         "name": "Our first trip together", 
-        "coords": [56.94751605162167, 24.108679117232104], 
+        "coords": [56.94751, 24.10867], 
         "memory": "We planned a lot of things together, but Mintu had his own plans. 🐶",
         "clue": "Cross the border! Where did we head for our first big getaway? 🏰",
-        "image_url": "https://maps.app.goo.gl/A96h4vyepr3MMDw46"
+        "image_url": "https://i.imgur.com/aPpyF24.jpg"
     },
     {
         "name": "Our unexpected best restaurant", 
-        "coords": [55.706792572044805, 21.137550531907657], 
-        "memory": "We found it by random chance, but it will stick with us forever. ❤️",
+        "coords": [55.70679, 21.13755], 
+        "memory": "We found it by random chance, but it will stick with us forever.❤️",
         "clue": "Hungry? Find that one place we stumbled upon that became our favorite. 🍝",
-        "image_url": "https://via.placeholder.com/400x300.png?text=Restaurant+Photo"
+        "image_url": "https://i.imgur.com/vjZsUxL.jpg"
     }
 ]
 
 # State Management
 if 'step' not in st.session_state:
     st.session_state.step = 0
-if 'viewing_memory' not in st.session_state:
-    st.session_state.viewing_memory = False
+if 'found' not in st.session_state:
+    st.session_state.found = False
 
-st.title("Our Love Map 🗺️")
+st.title("Memory Challenge: Guess the Spot! 🧩")
 current_step = st.session_state.step
 
-# --- LOGIC: SHOW MEMORY CARD OR CLUE ---
-if st.session_state.viewing_memory and current_step < len(locations):
-    # This section appears ONLY when a marker is clicked
+if current_step < len(locations):
     loc = locations[current_step]
-    st.markdown(f"### ✨ Memory Unlocked: {loc['name']}")
     
-    col1, col2 = st.columns([1, 1])
-    with col1:
-        st.image(loc["image_url"], use_container_width=True)
-    with col2:
-        st.info(loc["memory"])
-        if st.button("Continue our journey →", use_container_width=True):
-            st.session_state.step += 1
-            st.session_state.viewing_memory = False
+    if not st.session_state.found:
+        st.info(f"**Level {current_step + 1}:** {loc['clue']}")
+    else:
+        st.success(f"✨ Correct! You found: {loc['name']}")
+        col1, col2 = st.columns([1, 1])
+        with col1:
+            st.image(loc["image_url"], use_container_width=True)
+        with col2:
+            st.write(loc["memory"])
+            if st.button("Next Challenge ➡️", use_container_width=True):
+                st.session_state.step += 1
+                st.session_state.found = False
+                st.rerun()
+
+    # Map setup
+    m = folium.Map(location=loc["coords"], zoom_start=12)
+    if st.session_state.found:
+        folium.Marker(location=loc["coords"], icon=folium.Icon(color="red", icon="heart")).add_to(m)
+
+    # Key is dynamic to force refresh after each level
+    map_data = st_folium(m, width="100%", height=500, key=f"map_{current_step}")
+
+    if map_data["last_clicked"] and not st.session_state.found:
+        guess = [map_data["last_clicked"]["lat"], map_data["last_clicked"]["lng"]]
+        target = loc["coords"]
+        if abs(guess[0] - target[0]) < 0.01 and abs(guess[1] - target[1]) < 0.01:
+            st.session_state.found = True
+            st.balloons()
             st.rerun()
-            
-elif current_step < len(locations):
-    # Normal Clue View
-    st.info(f"**Next Clue:** {locations[current_step]['clue']}")
-    st.progress(current_step / len(locations))
+
 else:
-    st.success("🎉 You've unlocked all our memories!")
-
-# --- MAP SECTION ---
-# Auto-center
-center_coords = locations[min(current_step, len(locations)-1)]["coords"]
-m = folium.Map(location=center_coords, zoom_start=13, tiles="CartoDB positron")
-
-# Markers
-for i in range(current_step + 1):
-    if i < len(locations):
-        is_active = (i == current_step)
-        folium.Marker(
-            location=locations[i]["coords"],
-            icon=folium.Icon(color="red" if is_active else "gray", icon="heart", prefix="fa")
-        ).add_to(m)
-
-# Capture Clicks
-output = st_folium(m, width="100%", height=400)
-
-if output["last_object_clicked"] and not st.session_state.viewing_memory:
-    clicked = [output["last_object_clicked"]["lat"], output["last_object_clicked"]["lng"]]
-    target = locations[current_step]["coords"]
-    
-    # Distance check
-    if abs(clicked[0] - target[0]) < 0.005 and abs(clicked[1] - target[1]) < 0.005:
-        st.session_state.viewing_memory = True
-        st.rerun()
-
-# --- FINALE ---
-if current_step == len(locations):
-    st.markdown("---")
-    st.header("💌 One Final Question...")
-    # Your specific text from the memories
-    st.write("We've traveled together and made so many plans. Let's make one more.")
-    if st.button("Will you be my Valentine? ❤️", use_container_width=True):
+    # --- FINALE ---
+    if current_step == len(locations):
         st.balloons()
-        st.snow()
-        st.success("Yay! Can't wait for our next trip! ❤️")
+        st.header("💌 You remembered everything!")
+        st.write("We've traveled together and made so many plans. Let's make one more.")
+        
+        # Use a container to hold the buttons
+        col_yes, col_no = st.columns(2)
+        
+        with col_yes:
+            if st.button("YES! ❤️", use_container_width=True):
+                st.snow()
+                st.success("I love you! Best. Valentine's. Ever.")
+                
+        with col_no:
+            # This version uses a more robust script to force the button to escape its box
+            st.components.v1.html("""
+                <style>
+                    #runaway {
+                        background-color: #ff4b4b;
+                        color: white;
+                        border: none;
+                        padding: 12px 24px;
+                        border-radius: 5px;
+                        font-family: sans-serif;
+                        cursor: pointer;
+                        transition: 0.1s;
+                        position: absolute;
+                    }
+                </style>
+                <button id="runaway">No</button>
+                <script>
+                    const btn = document.getElementById('runaway');
+                    // Function to move the button
+                    const moveButton = () => {
+                        btn.style.left = Math.random() * (window.innerWidth - 80) + 'px';
+                        btn.style.top = Math.random() * (window.innerHeight - 40) + 'px';
+                    };
+                    
+                    // Move on hover AND on click attempt
+                    btn.addEventListener('mouseover', moveButton);
+                    btn.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        moveButton();
+                        alert("Nice try! 'No' is out of order today. 😉");
+                    });
+                </script>
+            """, height=300)
+
