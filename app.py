@@ -92,7 +92,7 @@ else:
         with col_yes:
             if st.button("YES! ❤️", use_container_width=True):
                 st.snow()
-                st.success("I love you! Best. Valentine's. Ever.")
+                st.success("I love you! ❤️")
                 
         with col_no:
             # This version uses a more robust script to force the button to escape its box
