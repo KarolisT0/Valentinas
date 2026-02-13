@@ -11,14 +11,14 @@ locations = [
         "name": "Where we first met", 
         "coords": [54.88879, 23.92604], 
         "memory": "I'll never forget that white blouse you wore. 👚",
-        "clue": "Let's start where it all began... Find the spot of our very first meeting! ☕",
+        "clue": "Let's start where it all began... Find the spot of our very first met! ☕",
         "image_url": "https://lh3.googleusercontent.com/p/AF1QipOhRntAB9mbmlZfHxsKAj9PE5ZDlmlIX2a0Pl2K=s680-w680-h510-rw" 
     },
     {
         "name": "Our First Date", 
         "coords": [56.24867, 24.69066], 
         "memory": "The trip was unplanned, but the conversation was perfect. 🍕",
-        "clue": "Our first official date! It was a bit of a drive, wasn't it? 🚗",
+        "clue": "Our first date! It was a bit of a drive, wasn't it? 🚗",
         "image_url": "https://i.imgur.com/g7VaplC.jpg"
     },
     {
